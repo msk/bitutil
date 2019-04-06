@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign};
 
-#[derive(Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Default, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub struct BitSet256 {
     bits: [u64; 4],
 }
@@ -274,10 +274,41 @@ mod tests {
     #[test]
     fn bitset256_set_n() {
         let strides = [80, 17, 7, 3];
-        let mut b = BitSet256::default();
-        for &s in &strides {
-            b.set(s);
+        for &step in &strides {
+            let mut bs = BitSet256::default();
+            for i in (0..256).step_by(step) {
+                bs.set(i);
+            }
+            assert_eq!(bs.count(), 256 / step + 1);
+            assert_eq!(bs.find_first(), 0);
+            let mut i = bs.find_next(0);
+            let mut count = 1;
+            while i < 256 {
+                assert_eq!(count * step, i);
+                i = bs.find_next(i);
+                count += 1;
+            }
+            assert_eq!(bs.count(), count);
         }
-        assert_eq!(b.count(), strides.len());
+    }
+
+    #[test]
+    fn bitset256_all() {
+        let mut bs = BitSet256::default();
+        bs.set_all();
+        assert!(!bs.none());
+        assert!(bs.all());
+        assert_eq!(bs.count(), 256);
+
+        bs.unset_all();
+        assert!(bs.none());
+        assert!(!bs.all());
+        assert_eq!(bs.count(), 0);
+        assert_eq!(bs, BitSet256::default());
+
+        bs.flip_all();
+        assert!(!bs.none());
+        assert!(bs.all());
+        assert_eq!(bs.count(), 256);
     }
 }
