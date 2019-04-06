@@ -174,7 +174,7 @@ impl BitSet256 {
     }
 
     const fn unmaskbit(n: usize) -> u64 {
-        0xfffffffffffffffe << (n % 64)
+        0xffff_ffff_ffff_fffe << (n % 64)
     }
 }
 
